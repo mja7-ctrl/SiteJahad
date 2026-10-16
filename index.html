@@ -1,0 +1,1177 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>رویداد انیمیشن سازی دانشجویی | موج امید</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              zero: {
+                bg: '#F6F4EE',
+                surface: '#EFECE4',
+                ink: '#111111',
+                lime: '#C8F560',
+                coral: '#FF5C35',
+                lavender: '#E5DEFF',
+              }
+            },
+            fontFamily: { vazir: ['Vazirmatn', 'sans-serif'] },
+          }
+        }
+      }
+    </script>
+    <style type="text/tailwindcss">
+      @layer base {
+        * { @apply font-vazir; }
+        html { scroll-behavior: smooth; }
+        body { @apply bg-zero-bg text-zero-ink antialiased overflow-x-hidden selection:bg-zero-lime selection:text-zero-ink; }
+      }
+      @layer components {
+        .zero-card {
+          @apply bg-white border-2 border-zero-ink rounded-2xl shadow-[4px_4px_0px_#111111] transition-all duration-200;
+        }
+        .zero-card-hover {
+          @apply zero-card hover:-translate-y-1 hover:shadow-[7px_7px_0px_#111111];
+        }
+        .btn-zero-primary {
+          @apply px-6 py-3 rounded-xl bg-zero-ink text-white font-bold border-2 border-zero-ink shadow-[4px_4px_0px_#C8F560] transition-all duration-200 hover:bg-zero-lime hover:text-zero-ink hover:shadow-[4px_4px_0px_#111111] active:translate-y-0.5;
+        }
+        .btn-zero-secondary {
+          @apply px-6 py-3 rounded-xl bg-white text-zero-ink font-bold border-2 border-zero-ink shadow-[4px_4px_0px_#111111] transition-all duration-200 hover:bg-zero-surface active:translate-y-0.5;
+        }
+        .input-zero {
+          @apply w-full px-4 py-3 rounded-xl bg-zero-bg border-2 border-zero-ink text-zero-ink placeholder-neutral-400 focus:bg-white focus:border-zero-ink focus:outline-none focus:shadow-[3px_3px_0px_#C8F560] transition-all text-sm font-medium;
+        }
+      }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@18.2.0",
+          "react-dom": "https://esm.sh/react-dom@18.2.0",
+          "react-dom/client": "https://esm.sh/react-dom@18.2.0/client"
+        }
+      }
+    </script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+      import React, { useState, useEffect } from 'react';
+      import ReactDOM from 'react-dom/client';
+
+      const toFa = (n) => n !== undefined && n !== null ? n.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]) : '';
+      const toEnDigits = (s) => s ? s.toString().replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)) : '';
+
+      // لوگوی وکتور مینیمال: ترکیب موج متحرک + علامت انیمیشن و ستاره
+      const WaveLogo = ({ className = "w-6 h-6 text-zero-ink" }) => (
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+          <path d="M4 22C8 22 10 12 16 12C22 12 24 22 28 22" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          <path d="M7 26C11 26 13 18 17 18C21 18 23 26 27 26" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.6" />
+          <polygon points="15,6 19,8.5 15,11" fill="currentColor" />
+          <circle cx="23" cy="8" r="1.5" fill="currentColor" />
+        </svg>
+      );
+
+      const LogoutIcon = ({ className = "w-4 h-4" }) => (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <polyline points="16 17 21 12 16 7" />
+          <line x1="21" y1="12" x2="9" y2="12" />
+        </svg>
+      );
+
+      const ChevronDown = ({ className = "w-5 h-5" }) => (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      );
+
+      // ۱۹ جلسه آموزشی در ۴ سرفصل اصلی
+      const courseSections = [
+        {
+          id: 'mini',
+          title: 'مینی دوره: آشنایی با تولید محتوای کودک',
+          badge: 'مبانی و جهان کودک',
+          lessons: [
+            { id: 1, title: 'جلسه ۱: مخاطب ما کیست؟ (ویژگی‌های ذهنی کودک)', duration: '۱۰ دقیقه' },
+            { id: 2, title: 'جلسه ۲: از چشم کودک ببین (دنیای ذهنی کودک)', duration: '۱۲ دقیقه' },
+            { id: 3, title: 'جلسه ۳: چگونه مفاهیم بزرگ را کودکانه کنیم؟', duration: '۱۴ دقیقه' },
+            { id: 4, title: 'جلسه ۴: زیباشناسی بصری کودک', duration: '۱۱ دقیقه' },
+            { id: 5, title: 'جلسه ۵: زبان رنگ، نما و دوربین', duration: '۱۳ دقیقه' },
+            { id: 6, title: 'جلسه ۶: قلاب ۳ ثانیه‌ای در محتوای کوتاه', duration: '۹ دقیقه' },
+            { id: 7, title: 'جلسه ۷: قصه‌ای که نصیحت نمی‌کند', duration: '۱۵ دقیقه' },
+            { id: 8, title: 'جلسه ۸: شخصیت و هم‌ذات‌پنداری', duration: '۱۲ دقیقه' },
+            { id: 9, title: 'جلسه ۹: تربیت، هویت و امید بدون شعار', duration: '۱۴ دقیقه' },
+            { id: 10, title: 'جلسه ۱۰: ۱۰ چارچوب نهایی قبل از تولید', duration: '۱۶ دقیقه' },
+          ]
+        },
+        {
+          id: 'sec1',
+          title: 'بخش ۱: سناریونویسی و داستان‌پردازی (تولید متن)',
+          badge: 'هوش مصنوعی متنی',
+          lessons: [
+            { id: 11, title: 'جلسه ۱۱: آشنایی با مدل‌های هوش مصنوعی متنی', duration: '۱۸ دقیقه' },
+            { id: 12, title: 'جلسه ۱۲: اصول پرامپت‌نویسی حرفه‌ای سناریو', duration: '۲۰ دقیقه' },
+            { id: 13, title: 'جلسه ۱۳: ساختار سناریو و دکوپاژ صحنه به صحنه', duration: '۲۲ دقیقه' },
+          ]
+        },
+        {
+          id: 'sec2',
+          title: 'بخش ۲: تصویرسازی و طراحی شخصیت (تولید تصویر)',
+          badge: 'تولید تصویر',
+          lessons: [
+            { id: 14, title: 'جلسه ۱۴: آشنایی با ابزارهای هوش مصنوعی تصویرساز', duration: '۲۵ دقیقه' },
+            { id: 15, title: 'جلسه ۱۵: تکنیک‌های حفظ ثبات چهره و کاراکتر', duration: '۲۴ دقیقه' },
+            { id: 16, title: 'جلسه ۱۶: طراحی پس‌زمینه‌ها و فریم‌های کلیدی', duration: '۱۹ دقیقه' },
+          ]
+        },
+        {
+          id: 'sec3',
+          title: 'بخش ۳: پویانمایی، صداگذاری و تدوین (تولید ویدیو)',
+          badge: 'ساخت و خروجی انیمیشن',
+          lessons: [
+            { id: 17, title: 'جلسه ۱۷: متحرک‌سازی تصاویر با هوش مصنوعی', duration: '۲۸ دقیقه' },
+            { id: 18, title: 'جلسه ۱۸: تولید صدای راوی و افکت‌های صوتی', duration: '۱۷ دقیقه' },
+            { id: 19, title: 'جلسه ۱۹: تدوین نهایی و خروجی گرفتن استاندارد MP4', duration: '۲۱ دقیقه' },
+          ]
+        }
+      ];
+
+      const allLessons = courseSections.flatMap(s => s.lessons.map(l => ({ ...l, sectionTitle: s.title })));
+
+      const initialStoryBank = [
+        {
+          id: 1,
+          title: 'دانه کوچولویی که از تاریکی نمی‌ترسید',
+          theme: 'امید و شجاعت رشد کردن',
+          characters: 'دانه فندقی، کرم شب‌تاب، قطره باران',
+          story: 'دانه کوچولو زیر خاک تاریک نشسته بود. قطره باران به او گفت: «اگر به سمت بالا قد بکشی، خورشید گرم و دشت پروانه‌ها منتظر تو هستند.» دانه با راهنمایی‌های کرم شب‌تاب ریشه‌هایش را محکم کرد و جوانه زد تا به نور برسد.',
+          moral: 'هر مسیری ممکن است در ابتدا مبهم باشد، اما با امید و تلاش زیباترین روزها از راه می‌رسند.'
+        },
+        {
+          id: 2,
+          title: 'ابر خاکستری و بادبادک‌های رنگی',
+          theme: 'امیدآفرینی و شادی جمعی',
+          characters: 'ابرک، پسرک بادبادک‌ساز، خورشید',
+          story: 'ابرک ناراحت بود که چرا رنگش سفید و پنبه‌ای نیست. بچه‌ها بادبادک زرد بزرگی به سوی او فرستادند و نوشتند: «ما منتظر باران تو هستیم تا رنگین‌کمان بسازیم!» ابرک بارید و رنگین‌کمانی بزرگ بر فراز شهر نقش بست.',
+          moral: 'هر کدام از ما ویژگی منحصر‌به‌فردی داریم که می‌تواند دنیای دیگران را روشن کند.'
+        },
+        {
+          id: 3,
+          title: 'فانوس خاموش و آواز نهنگ',
+          theme: 'یافتن مسیر در تاریکی',
+          characters: 'فانوس دریایی، نهنگ کوچک، ستاره قطبی',
+          story: 'در شبی مه‌آلود، چراغ فانوس کم‌سو شد و قایق‌ها مسیر خود را گم کردند. نهنگ با صدای بلند آوازی امیدبخش سر داد و ستاره‌ها نیز درخشیدند تا همه به سلامت به ساحل امن برسند.',
+          moral: 'حتی در تاریک‌ترین لحظات نیز یک صدای امیدوار راهگشاست.'
+        }
+      ];
+
+      // --- ۱. هدر سایت ---
+      function Header({ user, currentView, setCurrentView, onLogout }) {
+        return (
+          <header className="sticky top-0 z-50 bg-zero-bg/95 backdrop-blur-md border-b-2 border-zero-ink">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
+              <div 
+                onClick={() => setCurrentView('landing')} 
+                className="flex items-center gap-3 cursor-pointer"
+              >
+                <div className="w-10 h-10 rounded-xl bg-zero-lime border-2 border-zero-ink flex items-center justify-center shadow-[2px_2px_0px_#111111]">
+                  <WaveLogo />
+                </div>
+                <div>
+                  <span className="text-lg font-black text-zero-ink block leading-none">موج امید</span>
+                  <span className="text-xs text-neutral-600 font-semibold mt-1 block">رویداد انیمیشن سازی دانشجویی</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    if (currentView === 'panel') {
+                      setCurrentView('landing');
+                    } else {
+                      if (!user) {
+                        const demoUser = {
+                          fullName: 'دانشجوی خلاق',
+                          studentId: '۴۰۱۲۳۴۵۶',
+                          university: 'دانشگاه سراسری',
+                          major: 'هنر و رسانه',
+                          degree: 'کارشناسی',
+                          age: '۲۲',
+                          phone: '09123456789'
+                        };
+                        localStorage.setItem('mowj_user', JSON.stringify(demoUser));
+                        window.dispatchEvent(new Event('storage-update'));
+                      }
+                      setCurrentView('panel');
+                    }
+                  }}
+                  className="hidden sm:inline-block px-3 py-1.5 rounded-lg border-2 border-zero-ink bg-zero-lavender text-zero-ink text-xs font-black shadow-[2px_2px_0px_#111111] hover:bg-white"
+                >
+                  {currentView === 'panel' ? 'مشاهده صفحه اصلی' : 'پیش‌نمایش پنل کاربری'}
+                </button>
+
+                {user ? (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentView('panel')}
+                      className="btn-zero-primary !py-2 !px-4 text-xs sm:text-sm"
+                    >
+                      پنل کاربری
+                    </button>
+                    <button
+                      onClick={onLogout}
+                      className="w-10 h-10 rounded-xl bg-white border-2 border-zero-ink flex items-center justify-center text-zero-ink hover:bg-rose-50 transition-colors shadow-[2px_2px_0px_#111111]"
+                      title="خروج از حساب"
+                    >
+                      <LogoutIcon />
+                    </button>
+                  </div>
+                ) : (
+                  <a href="#auth-section" className="btn-zero-primary !py-2.5 !px-6 text-sm inline-block">
+                    ورود
+                  </a>
+                )}
+              </div>
+            </div>
+          </header>
+        );
+      }
+
+      // --- ۲. بنر اصلی + کارت توضیحات + کارت جوایز ---
+      function HeroSection() {
+        return (
+          <section className="pt-6 pb-12 px-4 sm:px-6">
+            <div className="max-w-6xl mx-auto space-y-8">
+              
+              {/* بنر اصلی ریسپانسیو با فونت متناسب در دسکتاپ */}
+              <div className="relative w-full rounded-2xl overflow-hidden border-2 border-zero-ink shadow-[6px_6px_0px_#111111] bg-[#F6F4EE]">
+                <picture className="w-full block">
+                  <source media="(max-width: 640px)" srcSet="./Banner0.png" />
+                  <img
+                    src="./Banner.png"
+                    alt="رویداد انیمیشن سازی دانشجویی موج امید"
+                    className="w-full h-auto min-h-[420px] sm:min-h-[350px] md:min-h-0 block object-cover"
+                  />
+                </picture>
+
+                <div className="absolute inset-0 p-5 sm:p-7 md:p-8 lg:p-10 flex flex-col justify-end sm:justify-center items-start z-10 bg-gradient-to-t from-zero-bg/95 via-zero-bg/50 to-transparent sm:bg-none">
+                  <div className="max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg space-y-2.5 sm:space-y-3">
+                    
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-md bg-zero-lime border border-zero-ink text-zero-ink text-[10px] sm:text-xs font-black shadow-[2px_2px_0px_#111111]">
+                      جهاد دانشگاهی برگزار می‌کند
+                    </div>
+
+                    <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-[32px] font-black text-zero-ink leading-[1.35] drop-shadow-sm">
+                      با هوش مصنوعی برای بچه‌ها انیمیشن بساز؛ <br />
+                      روی <span className="bg-zero-lime px-2 py-0.5 rounded-lg border-2 border-zero-ink inline-block mt-1">
+                        موج امید
+                      </span>
+                    </h1>
+
+                    <div className="flex flex-wrap items-center gap-2.5 pt-1 sm:pt-2">
+                      <a href="#auth-section" className="btn-zero-primary text-xs !py-2 !px-4 sm:!py-2.5 sm:!px-5">
+                        ورود / ثبت‌نام
+                      </a>
+                      <a href="#about-event" className="btn-zero-secondary text-xs !py-2 !px-4 sm:!py-2.5 sm:!px-5 bg-white/90">
+                        داستان چیه؟
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* کارت «داستان از چه قراره؟» با ادبیات عامیانه و ساختار متنی منظم */}
+              <div id="about-event" className="zero-card p-6 sm:p-8 bg-zero-lavender border-2 border-zero-ink shadow-[5px_5px_0px_#111111]">
+                <div className="max-w-3xl space-y-4">
+                  <span className="inline-block px-3 py-1 rounded-md bg-white border border-zero-ink text-zero-ink text-xs font-black">
+                    داستان از چه قراره؟
+                  </span>
+                  <h2 className="text-xl sm:text-2xl font-black text-zero-ink">
+                    یه ماجراجویی جذاب با هوش مصنوعی!
+                  </h2>
+                  <p className="text-sm sm:text-base text-neutral-800 leading-relaxed font-medium">
+                    توی رویداد «موج امید» قراره با کمک ابزارهای هوش مصنوعی، یه انیمیشن کودکانه و پر از حس خوب بسازی.
+                    شاید بگی «من که اصلاً انیمیشن‌سازی یا طراحی بلد نیستم!»؛ دقیقاً نکته همین‌جاست، اصلاً نیازی به این مهارت‌ها نداری!
+                  </p>
+                  
+                  <div className="p-4 rounded-xl bg-white/70 border border-zero-ink/20 space-y-2.5 text-xs sm:text-sm text-neutral-900 leading-relaxed">
+                    <p className="font-bold">به محض اینکه ثبت‌نام کنی، وارد پنل کاربریت میشی:</p>
+                    <ul className="space-y-2 pr-2">
+                      <li>
+                        <strong>۱. آموزش قدم‌به‌قدم:</strong> چندتا ویدیوی کوتاه و کاربردی می‌بینی که یادت میده چطور از صفر، با هوش مصنوعی کاراکتر بسازی، متحرکش کنی و روش صدا بذاری.
+                      </li>
+                      <li>
+                        <strong>۲. بانک داستان آماده:</strong> اگه خودت قصه نداری، با یه کلیک یکی از قصه‌های آماده‌ی بانک داستان رو انتخاب می‌کنی.
+                      </li>
+                      <li>
+                        <strong>۳. همراهی منتور:</strong> در تمام این مدت یه منتور هوات رو داره تا هر جا گیر کردی کمکت کنه.
+                      </li>
+                    </ul>
+                  </div>
+
+                  <p className="text-sm font-black text-zero-ink pt-1">
+                    در نهایت انیمیشنت رو توی پروفایلت بارگذاری می‌کنی و می‌ری برای رقابت و جایزه ۱۰ میلیونی! 🚀
+                  </p>
+                </div>
+              </div>
+
+              {/* کارت جوایز مستقل رویداد (حذف برچسب مجموع ۲۲ میلیون) */}
+              <div id="prizes" className="zero-card p-6 sm:p-8 bg-zero-ink text-white border-2 border-zero-ink shadow-[6px_6px_0px_#FF5C35]">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 mb-6 border-b border-neutral-800">
+                  <div>
+                    <span className="text-xs font-bold text-zero-lime block mb-1">تقدیر از ایده‌ها و آثار برتر</span>
+                    <h3 className="text-xl sm:text-2xl font-black text-white">جوایز برگزیدگان جشنواره «موج امید»</h3>
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-xl bg-zero-lime text-zero-ink border-2 border-zero-ink flex items-center justify-between sm:flex-col sm:items-start sm:justify-between min-h-[90px]">
+                    <span className="text-xs sm:text-sm font-black">رتبه اول جشنواره</span>
+                    <div className="text-left sm:text-right mt-0 sm:mt-2">
+                      <span className="text-3xl font-black">۱۰</span>
+                      <span className="text-xs font-bold mr-1">میلیون تومان</span>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-neutral-900 border border-neutral-700 text-white flex items-center justify-between sm:flex-col sm:items-start sm:justify-between min-h-[90px]">
+                    <span className="text-xs sm:text-sm font-bold text-neutral-300">رتبه دوم جشنواره</span>
+                    <div className="text-left sm:text-right mt-0 sm:mt-2">
+                      <span className="text-3xl font-black text-white">۷</span>
+                      <span className="text-xs text-neutral-400 mr-1">میلیون تومان</span>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-neutral-900 border border-neutral-700 text-white flex items-center justify-between sm:flex-col sm:items-start sm:justify-between min-h-[90px]">
+                    <span className="text-xs sm:text-sm font-bold text-neutral-300">رتبه سوم جشنواره</span>
+                    <div className="text-left sm:text-right mt-0 sm:mt-2">
+                      <span className="text-3xl font-black text-white">۵</span>
+                      <span className="text-xs text-neutral-400 mr-1">میلیون تومان</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </section>
+        );
+      }
+
+      // --- ۳. مسیر رویداد: ۳ مرحله تا خلق انیمیشن ---
+      function EventProcess() {
+        const steps = [
+          {
+            num: '۱',
+            title: 'یادگیری و آموزش',
+            bgClass: 'bg-white',
+            badgeClass: 'bg-zero-lime text-zero-ink',
+            points: [
+              'ثبت‌نام در سامانه رویداد',
+              'دسترسی به ویدیوهای آموزشی گام‌به‌گام',
+              'یادگیری عملی ابزارهای هوش مصنوعی'
+            ]
+          },
+          {
+            num: '۲',
+            title: 'داستان و تولید انیمیشن',
+            bgClass: 'bg-zero-lavender',
+            badgeClass: 'bg-white text-zero-ink',
+            points: [
+              'انتخاب داستان (ایده شخصی یا بانک داستان)',
+              'طراحی کاراکتر و تصویرسازی با هوش مصنوعی',
+              'متحرک‌سازی و صداگذاری انیمیشن'
+            ]
+          },
+          {
+            num: '۳',
+            title: 'ارسال اثر و داوری',
+            bgClass: 'bg-zero-lime',
+            badgeClass: 'bg-zero-ink text-white',
+            points: [
+              'آماده‌سازی فایل MP4 (حداقل ۱ دقیقه)',
+              'ارسال مستقیم اثر از طریق پروفایل کاربری',
+              'داوری و اعلام نتایج برندگان جوایز نقدی'
+            ]
+          }
+        ];
+
+        return (
+          <section id="process" className="py-16 px-4 sm:px-6 border-y-2 border-zero-ink bg-zero-surface">
+            <div className="max-w-6xl mx-auto">
+              <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+                <div>
+                  <span className="inline-block px-3 py-1 rounded-md bg-zero-ink text-white text-xs font-bold mb-3">
+                    مسیر رویداد
+                  </span>
+                  <h2 className="text-2xl sm:text-4xl font-black text-zero-ink">
+                    ۳ مرحله تا خلق انیمیشن
+                  </h2>
+                </div>
+                <p className="text-sm sm:text-base text-neutral-700 max-w-md font-medium">
+                  از یادگیری ابزارها تا ارسال اثر نهایی، در سه مرحله ساده و گام‌به‌گام.
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-6">
+                {steps.map((item, idx) => (
+                  <div key={idx} className={`zero-card-hover p-7 flex flex-col justify-between ${item.bgClass}`}>
+                    <div>
+                      <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-zero-ink/15">
+                        <span className={`text-xs font-black px-3 py-1 rounded-lg border border-zero-ink ${item.badgeClass}`}>
+                          مرحله {toFa(item.num)}
+                        </span>
+                        <span className="text-4xl font-black text-zero-ink">
+                          {toFa(item.num)}
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-black text-zero-ink mb-4 leading-snug">
+                        {item.title}
+                      </h3>
+                      <ul className="space-y-2.5 text-xs sm:text-sm text-neutral-800 font-medium">
+                        {item.points.map((pt, pIdx) => (
+                          <li key={pIdx} className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-zero-ink flex-shrink-0" />
+                            <span>{pt}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        );
+      }
+
+      // --- ۴. فرم ثبت‌نام و ورود ---
+      function AuthSection({ onAuthSuccess }) {
+        const [activeTab, setActiveTab] = useState('register');
+        const [formData, setFormData] = useState({
+          fullName: '',
+          studentId: '',
+          university: '',
+          major: '',
+          degree: 'کارشناسی',
+          age: '',
+          phone: ''
+        });
+        const [loginUser, setLoginUser] = useState('');
+        const [loginPass, setLoginPass] = useState('');
+        const [errors, setErrors] = useState({});
+
+        const validateRegister = () => {
+          const errs = {};
+          const phoneEn = toEnDigits(formData.phone).trim();
+          const studentIdEn = toEnDigits(formData.studentId).trim();
+          const ageEn = toEnDigits(formData.age).trim();
+
+          if (!formData.fullName.trim()) errs.fullName = 'نام و نام خانوادگی الزامی است';
+          if (!studentIdEn) errs.studentId = 'شماره دانشجویی الزامی است';
+          if (!formData.university.trim()) errs.university = 'نام دانشگاه الزامی است';
+          if (!formData.major.trim()) errs.major = 'رشته تحصیلی الزامی است';
+          if (!ageEn || isNaN(Number(ageEn)) || Number(ageEn) < 16 || Number(ageEn) > 55) {
+            errs.age = 'سن معتبر وارد کنید';
+          }
+          if (!/^09\d{9}$/.test(phoneEn)) {
+            errs.phone = 'شماره همراه باید ۱۱ رقم و با ۰۹ شروع شود';
+          }
+          return errs;
+        };
+
+        const handleRegister = (e) => {
+          e.preventDefault();
+          const errs = validateRegister();
+          setErrors(errs);
+          if (Object.keys(errs).length > 0) return;
+          const cleanPhone = toEnDigits(formData.phone).trim();
+          const newUser = { ...formData, phone: cleanPhone, studentId: toEnDigits(formData.studentId).trim() };
+          localStorage.setItem('mowj_user', JSON.stringify(newUser));
+          onAuthSuccess(newUser);
+        };
+
+        const handleLogin = (e) => {
+          e.preventDefault();
+          const userPhone = toEnDigits(loginUser).trim();
+          const passPhone = toEnDigits(loginPass).trim();
+
+          if (!/^09\d{9}$/.test(userPhone)) {
+            setErrors({ loginUser: 'نام کاربری همان شماره همراه ۱۱ رقمی شماست.' });
+            return;
+          }
+          if (!/^09\d{9}$/.test(passPhone)) {
+            setErrors({ loginPass: 'رمز عبور همان شماره همراه ۱۱ رقمی شماست.' });
+            return;
+          }
+
+          const saved = localStorage.getItem('mowj_user');
+          if (saved) {
+            onAuthSuccess(JSON.parse(saved));
+          } else {
+            const demo = {
+              fullName: 'دانشجوی رویداد',
+              studentId: '۴۰۱۲۳۴۵۶',
+              university: 'دانشگاه سراسری',
+              major: 'هنر و فناوری',
+              degree: 'کارشناسی',
+              age: '۲۱',
+              phone: userPhone
+            };
+            localStorage.setItem('mowj_user', JSON.stringify(demo));
+            onAuthSuccess(demo);
+          }
+        };
+
+        return (
+          <section id="auth-section" className="py-16 px-4 sm:px-6">
+            <div className="max-w-2xl mx-auto">
+              <div className="text-center mb-8">
+                <span className="inline-block px-3 py-1 rounded-md bg-zero-lime border border-zero-ink text-zero-ink text-xs font-black mb-2">
+                  شروع مسیر
+                </span>
+                <h2 className="text-2xl sm:text-4xl font-black text-zero-ink">
+                  ثبت‌نام و ورود به پنل کاربری
+                </h2>
+                <p className="text-sm text-neutral-700 mt-2 font-medium">
+                  پس از ثبت‌نام، مستقیم وارد پروفایل خودت می‌شوی تا ویدیوها و بانک داستان را ببینی و اثرت را بارگذاری کنی.
+                </p>
+              </div>
+
+              <div className="zero-card p-6 sm:p-10">
+                <div className="grid grid-cols-2 gap-2 p-1.5 rounded-xl bg-zero-surface border-2 border-zero-ink mb-8">
+                  <button
+                    type="button"
+                    onClick={() => { setActiveTab('register'); setErrors({}); }}
+                    className={`py-3 rounded-lg text-sm font-black transition-all ${
+                      activeTab === 'register'
+                        ? 'bg-zero-ink text-zero-lime shadow-sm'
+                        : 'text-zero-ink hover:bg-white/60'
+                    }`}
+                  >
+                    ثبت‌نام در رویداد
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setActiveTab('login'); setErrors({}); }}
+                    className={`py-3 rounded-lg text-sm font-black transition-all ${
+                      activeTab === 'login'
+                        ? 'bg-zero-ink text-zero-lime shadow-sm'
+                        : 'text-zero-ink hover:bg-white/60'
+                    }`}
+                  >
+                    ورود به پنل کاربری
+                  </button>
+                </div>
+
+                {activeTab === 'register' ? (
+                  <form onSubmit={handleRegister} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-black text-zero-ink mb-1.5">نام و نام خانوادگی</label>
+                      <input
+                        type="text"
+                        value={formData.fullName}
+                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                        className="input-zero"
+                        placeholder="نام و نام خانوادگی خود را بنویسید"
+                      />
+                      {errors.fullName && <p className="text-xs text-zero-coral font-bold mt-1">{errors.fullName}</p>}
+                    </div>
+
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-black text-zero-ink mb-1.5">شماره دانشجویی</label>
+                        <input
+                          type="text"
+                          dir="ltr"
+                          value={formData.studentId}
+                          onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
+                          className="input-zero text-right"
+                          placeholder="مثال: ۴۰۱۲۳۴۵۶"
+                        />
+                        {errors.studentId && <p className="text-xs text-zero-coral font-bold mt-1">{errors.studentId}</p>}
+                      </div>
+                      <div>
+                        <label className="block text-xs font-black text-zero-ink mb-1.5">دانشگاه</label>
+                        <input
+                          type="text"
+                          value={formData.university}
+                          onChange={(e) => setFormData({ ...formData, university: e.target.value })}
+                          className="input-zero"
+                          placeholder="نام دانشگاه محل تحصیل"
+                        />
+                        {errors.university && <p className="text-xs text-zero-coral font-bold mt-1">{errors.university}</p>}
+                      </div>
+                    </div>
+
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-black text-zero-ink mb-1.5">رشته تحصیلی</label>
+                        <input
+                          type="text"
+                          value={formData.major}
+                          onChange={(e) => setFormData({ ...formData, major: e.target.value })}
+                          className="input-zero"
+                          placeholder="رشته تحصیلی"
+                        />
+                        {errors.major && <p className="text-xs text-zero-coral font-bold mt-1">{errors.major}</p>}
+                      </div>
+                      <div>
+                        <label className="block text-xs font-black text-zero-ink mb-1.5">مقطع تحصیلی</label>
+                        <select
+                          value={formData.degree}
+                          onChange={(e) => setFormData({ ...formData, degree: e.target.value })}
+                          className="input-zero"
+                        >
+                          <option value="کاردانی">کاردانی</option>
+                          <option value="کارشناسی">کارشناسی</option>
+                          <option value="کارشناسی ارشد">کارشناسی ارشد</option>
+                          <option value="دکتری">دکتری</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-black text-zero-ink mb-1.5">سن</label>
+                        <input
+                          type="text"
+                          dir="ltr"
+                          value={formData.age}
+                          onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                          className="input-zero text-right"
+                          placeholder="مثال: ۲۲"
+                        />
+                        {errors.age && <p className="text-xs text-zero-coral font-bold mt-1">{errors.age}</p>}
+                      </div>
+                      <div>
+                        <label className="block text-xs font-black text-zero-ink mb-1.5">شماره تماس (تلفن همراه)</label>
+                        <input
+                          type="tel"
+                          dir="ltr"
+                          value={formData.phone}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          className="input-zero text-right"
+                          placeholder="09123456789"
+                        />
+                        {errors.phone && <p className="text-xs text-zero-coral font-bold mt-1">{errors.phone}</p>}
+                      </div>
+                    </div>
+
+                    <div className="mt-3 p-3.5 rounded-xl bg-zero-surface border-2 border-zero-ink text-xs text-zero-ink leading-relaxed font-medium">
+                      <strong>توجه:</strong> شماره همراه شما، هم به عنوان <strong>نام کاربری</strong> و هم <strong>رمز عبور</strong> برای ورودهای بعدی به پنل خواهد بود.
+                    </div>
+
+                    <button type="submit" className="w-full btn-zero-primary py-4 text-sm sm:text-base mt-2">
+                      ثبت‌نام و ورود مستقیم به پنل کاربری
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleLogin} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-black text-zero-ink mb-1.5">
+                        نام کاربری (شماره همراه)
+                      </label>
+                      <input
+                        type="tel"
+                        dir="ltr"
+                        value={loginUser}
+                        onChange={(e) => setLoginUser(e.target.value)}
+                        className="input-zero text-center tracking-widest text-base"
+                        placeholder="09123456789"
+                      />
+                      {errors.loginUser && <p className="text-xs text-zero-coral font-bold mt-1">{errors.loginUser}</p>}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-black text-zero-ink mb-1.5">
+                        رمز عبور (شماره همراه)
+                      </label>
+                      <input
+                        type="password"
+                        dir="ltr"
+                        value={loginPass}
+                        onChange={(e) => setLoginPass(e.target.value)}
+                        className="input-zero text-center tracking-widest text-base"
+                        placeholder="09123456789"
+                      />
+                      {errors.loginPass && <p className="text-xs text-zero-coral font-bold mt-1">{errors.loginPass}</p>}
+                    </div>
+
+                    <p className="text-xs text-neutral-600 font-medium pt-1">
+                      💡 نام کاربری و رمز عبور شما، همان شماره همراهی است که هنگام ثبت‌نام وارد کرده‌اید.
+                    </p>
+
+                    <button type="submit" className="w-full btn-zero-primary py-4 text-sm sm:text-base mt-2">
+                      ورود به پنل کاربری
+                    </button>
+                  </form>
+                )}
+              </div>
+            </div>
+          </section>
+        );
+      }
+
+      // --- ۵. سوالات متداول (کاملاً کشویی / آکاردئونی) ---
+      function FAQSection() {
+        const [openIdx, setOpenIdx] = useState(null);
+
+        const faqs = [
+          {
+            q: 'من که تا به حال با هوش مصنوعی کار نکردم، می‌تونم شرکت کنم؟',
+            a: 'بله، حتماً! آموزش‌های داخل پنل کاربری کاملاً از صفر، کاربردی و به زبان ساده طراحی شده‌اند. علاوه بر آن، در تمام مسیر یک منتور همراه شماست تا هر جا سوالی داشتید راهنمایی‌تان کند.'
+          },
+          {
+            q: 'چقدر برای ساخت و ارسال اثر فرصت داریم؟',
+            a: 'مهلت ثبت‌نام، مشاهده ویدیوهای آموزشی و بارگذاری اثر نهایی در پنل کاربری تا ۳۰ آبان‌ماه خواهد بود.'
+          },
+          {
+            q: 'آیا باید ابزارهای هوش مصنوعی را خریداری کنیم یا هزینه دارد؟',
+            a: 'خیر، تمام آموزش‌ها بر پایه ابزارهای رایگان یا ابزارهایی است که اعتبار اولیه رایگان ارائه می‌دهند و شرکت در رویداد نیازمند پرداخت هیچ هزینه‌ای نیست.'
+          },
+          {
+            q: 'آیا می‌توانم بیش از یک اثر ارسال کنم؟',
+            a: 'بله، هر شرکت‌کننده مجاز است تا ۲ اثر انیمیشنی مختلف تولید و ارسال کند که هر دو در روند داوری بررسی خواهند شد.'
+          },
+          {
+            q: 'آیا شرکت در جشنواره و دسترسی به آموزش‌ها رایگان است؟',
+            a: 'بله، ثبت‌نام، تماشای ویدیوها، استفاده از بانک داستان و همراهی منتور برای تمامی دانشجویان کاملاً رایگان است.'
+          },
+          {
+            q: 'آیا باید حتماً دانشجوی رشته‌های هنر یا کامپیوتر باشم؟',
+            a: 'خیر، هیچ محدودیتی در رشته و مقطع تحصیلی وجود ندارد و تمامی دانشجویان از هر رشته‌ای می‌توانند در رویداد شرکت کنند.'
+          },
+          {
+            q: 'اثر نهایی را کجا و با چه مشخصاتی تحویل دهیم؟',
+            a: 'انیمیشن تولیدشده باید حداقل ۱ دقیقه و با فرمت MP4 باشد که مستقیماً از طریق پروفایل کاربری خودتان در همین سایت بارگذاری می‌شود.'
+          }
+        ];
+
+        const toggle = (i) => setOpenIdx(openIdx === i ? null : i);
+
+        return (
+          <section id="faq" className="py-16 px-4 sm:px-6 border-t-2 border-zero-ink bg-white">
+            <div className="max-w-4xl mx-auto">
+              <div className="mb-10 text-center">
+                <span className="inline-block px-3 py-1 rounded-md bg-zero-surface border border-zero-ink text-zero-ink text-xs font-black mb-2">
+                  پاسخ به ابهامات
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-black text-zero-ink">
+                  سوالات متداول
+                </h2>
+              </div>
+
+              <div className="space-y-3.5">
+                {faqs.map((item, idx) => {
+                  const isOpen = openIdx === idx;
+                  return (
+                    <div key={idx} className="rounded-2xl border-2 border-zero-ink bg-zero-bg overflow-hidden transition-all">
+                      <button
+                        onClick={() => toggle(idx)}
+                        className="w-full p-5 text-right flex items-center justify-between gap-4 font-black text-sm sm:text-base text-zero-ink hover:bg-zero-surface/60 transition-colors"
+                      >
+                        <span>{item.q}</span>
+                        <div className={`transition-transform duration-200 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`}>
+                          <ChevronDown />
+                        </div>
+                      </button>
+                      {isOpen && (
+                        <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-neutral-800 leading-relaxed font-medium border-t-2 border-zero-ink/10 bg-white">
+                          {item.a}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        );
+      }
+
+      // --- ۶. پنل کاربری دانشجو (ویدیوهای ۱۹ جلسه + بانک داستان + منتور + ارسال اثر) ---
+      function UserDashboard({ user }) {
+        const [activeLesson, setActiveLesson] = useState(allLessons[0]);
+        const [watchedIds, setWatchedIds] = useState([1]);
+        const [openSectionId, setOpenSectionId] = useState('mini');
+        const [currentStory, setCurrentStory] = useState(null);
+        const [copied, setCopied] = useState(false);
+
+        const [workTitle, setWorkTitle] = useState('');
+        const [selectedFile, setSelectedFile] = useState(null);
+        const [uploadSuccess, setUploadSuccess] = useState(false);
+
+        const pickStory = () => {
+          const rand = initialStoryBank[Math.floor(Math.random() * initialStoryBank.length)];
+          setCurrentStory(rand);
+          setCopied(false);
+        };
+
+        const copyStory = () => {
+          if (!currentStory) return;
+          navigator.clipboard.writeText(`${currentStory.title}\n\n${currentStory.story}\n\nپیام: ${currentStory.moral}`);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        };
+
+        const toggleWatch = (id) => {
+          setWatchedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+        };
+
+        return (
+          <div className="max-w-6xl mx-auto py-10 px-4 sm:px-6 space-y-10">
+            
+            {/* کارت خوش‌آمدگویی و کارت منتور */}
+            <div className="grid lg:grid-cols-12 gap-6 items-stretch">
+              <div className="lg:col-span-8 zero-card p-6 sm:p-8 flex flex-col justify-between">
+                <div>
+                  <span className="inline-block px-3 py-1 rounded-md bg-zero-lime border border-zero-ink text-zero-ink text-xs font-black mb-3">
+                    پنل اختصاصی شرکت‌کننده
+                  </span>
+                  <h1 className="text-2xl sm:text-3xl font-black text-zero-ink">
+                    سلام {user.fullName} عزیز، خوش آمدی
+                  </h1>
+                  <p className="text-sm text-neutral-700 mt-2 font-medium">
+                    ویدیوهای آموزشی را مشاهده کن، داستانت را از بانک داستان بردار و پس از آماده‌سازی، انیمیشن نهایی را همین‌جا ارسال کن.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-3 mt-6 pt-4 border-t-2 border-neutral-100 text-xs text-neutral-700 font-bold">
+                  <span>دانشگاه: {user.university}</span>
+                  <span>|</span>
+                  <span>رشته: {user.major} ({user.degree})</span>
+                  <span>|</span>
+                  <span>شماره دانشجویی: <strong dir="ltr">{user.studentId}</strong></span>
+                </div>
+              </div>
+
+              <div className="lg:col-span-4 bg-zero-ink text-white border-2 border-zero-ink rounded-2xl p-6 sm:p-8 shadow-[5px_5px_0px_#C8F560] flex flex-col justify-between">
+                <div>
+                  <span className="inline-block px-2.5 py-0.5 rounded bg-zero-coral text-white text-xs font-bold mb-3">
+                    پشتیبانی اختصاصی
+                  </span>
+                  <h3 className="text-xl font-black text-white mb-2">یک منتور همراه توست</h3>
+                  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
+                    در هر مرحله از کار با ابزارهای هوش مصنوعی یا سناریونویسی سوالی داشتی، منتور رویداد آماده راهنمایی توست.
+                  </p>
+                </div>
+                <button
+                  onClick={() => alert('در نسخه نهایی، این دکمه به سامانه چت یا کانال پشتیبانی منتور متصل می‌شود.')}
+                  className="mt-6 w-full py-3 rounded-xl bg-zero-lime text-zero-ink border-2 border-zero-ink font-black text-xs hover:bg-white transition-colors"
+                >
+                  ارتباط با منتور رویداد
+                </button>
+              </div>
+            </div>
+
+            {/* بخش ویدیوهای آموزشی تفکیک‌شده (۱۹ جلسه در ۴ سرفصل) */}
+            <div className="zero-card p-6 sm:p-8">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b-2 border-neutral-100">
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-black text-zero-ink">
+                    دوره‌های آموزشی گام‌به‌گام
+                  </h2>
+                  <p className="text-xs sm:text-sm text-neutral-600 font-medium mt-1">
+                    ۱۹ جلسه آموزش تخصصی تولید محتوا، سناریو، تصویرسازی و متحرک‌سازی با هوش مصنوعی.
+                  </p>
+                </div>
+                <span className="text-xs font-bold px-3 py-1.5 rounded-lg bg-zero-surface border border-zero-ink self-start sm:self-auto">
+                  {toFa(watchedIds.length)} از {toFa(allLessons.length)} جلسه مشاهده شده
+                </span>
+              </div>
+
+              <div className="grid lg:grid-cols-12 gap-6">
+                
+                {/* پلیر ویدیو */}
+                <div className="lg:col-span-7 flex flex-col">
+                  <div className="w-full aspect-video rounded-xl bg-zero-ink border-2 border-zero-ink flex flex-col items-center justify-center p-6 text-white text-center shadow-[4px_4px_0px_#111111]">
+                    <button
+                      onClick={() => alert(`پخش ویدیو: ${activeLesson.title}`)}
+                      className="w-16 h-16 rounded-2xl bg-zero-lime text-zero-ink border-2 border-zero-ink font-black text-xl flex items-center justify-center shadow-[3px_3px_0px_#FFFFFF] hover:scale-105 transition-transform"
+                    >
+                      ▶
+                    </button>
+                    <span className="mt-4 text-sm font-bold max-w-sm">{activeLesson.title}</span>
+                    <span className="text-xs text-neutral-400 mt-1">مدت زمان: {activeLesson.duration}</span>
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between p-3.5 rounded-xl bg-zero-surface border border-zero-ink">
+                    <span className="text-xs font-bold text-neutral-700">{activeLesson.sectionTitle}</span>
+                    <button
+                      onClick={() => toggleWatch(activeLesson.id)}
+                      className={`px-3 py-1.5 rounded-lg border border-zero-ink text-xs font-bold transition-colors ${
+                        watchedIds.includes(activeLesson.id) ? 'bg-zero-lime text-zero-ink' : 'bg-white hover:bg-zero-lime'
+                      }`}
+                    >
+                      {watchedIds.includes(activeLesson.id) ? '✓ مشاهده شد' : 'علامت‌گذاری به عنوان دیده‌شده'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* فهرست ۴ سرفصل و جلسات */}
+                <div className="lg:col-span-5 space-y-3 max-h-[460px] overflow-y-auto pl-1">
+                  {courseSections.map((sec) => {
+                    const isSecOpen = openSectionId === sec.id;
+                    return (
+                      <div key={sec.id} className="rounded-xl border-2 border-zero-ink overflow-hidden bg-white">
+                        <button
+                          onClick={() => setOpenSectionId(isSecOpen ? null : sec.id)}
+                          className="w-full p-3 text-right flex items-center justify-between bg-zero-surface/60 font-black text-xs text-zero-ink border-b border-zero-ink/10"
+                        >
+                          <div>
+                            <span className="block">{sec.title}</span>
+                            <span className="text-[10px] text-neutral-500 font-semibold">{toFa(sec.lessons.length)} جلسه</span>
+                          </div>
+                          <div className={`transition-transform ${isSecOpen ? 'rotate-180' : ''}`}>
+                            <ChevronDown className="w-4 h-4" />
+                          </div>
+                        </button>
+
+                        {isSecOpen && (
+                          <div className="p-2 space-y-1.5 bg-white">
+                            {sec.lessons.map((les) => {
+                              const isActive = activeLesson.id === les.id;
+                              const isWatched = watchedIds.includes(les.id);
+                              return (
+                                <button
+                                  key={les.id}
+                                  onClick={() => setActiveLesson({ ...les, sectionTitle: sec.title })}
+                                  className={`w-full text-right p-2.5 rounded-lg border transition-all flex items-center justify-between text-xs ${
+                                    isActive
+                                      ? 'bg-zero-lime border-zero-ink font-black shadow-[1px_1px_0px_#111111]'
+                                      : 'bg-zero-bg/60 border-neutral-200 hover:border-zero-ink font-medium'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black ${
+                                      isWatched ? 'bg-zero-ink text-zero-lime' : 'bg-neutral-200 text-neutral-700'
+                                    }`}>
+                                      {isWatched ? '✓' : toFa(les.id)}
+                                    </span>
+                                    <span>{les.title}</span>
+                                  </div>
+                                  <span className="text-[10px] text-neutral-500 mr-2">{les.duration}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+              </div>
+            </div>
+
+            {/* بانک داستان */}
+            <div className="zero-card p-6 sm:p-8 bg-zero-surface border-2 border-zero-ink">
+              <div className="grid lg:grid-cols-12 gap-8 items-center">
+                <div className="lg:col-span-5 space-y-4">
+                  <span className="inline-block px-3 py-1 rounded-md bg-zero-ink text-zero-lime text-xs font-black">
+                    ایده و سناریو
+                  </span>
+                  <h2 className="text-2xl font-black text-zero-ink">
+                    بانک داستان‌های آماده
+                  </h2>
+                  <p className="text-sm text-neutral-700 leading-relaxed font-medium">
+                    اگر ایده داستان در ذهن نداری، با کلیک روی دکمه زیر یکی از داستان‌های کوتاه و امیدبخش ما را دریافت و همان را تبدیل به انیمیشن کن.
+                  </p>
+                  <button onClick={pickStory} className="btn-zero-primary text-sm">
+                    {currentStory ? 'یک داستان دیگر به من بده' : 'دریافت یک داستان از بانک داستان'}
+                  </button>
+                </div>
+
+                <div className="lg:col-span-7">
+                  {currentStory ? (
+                    <div className="bg-white rounded-2xl p-6 border-2 border-zero-ink shadow-[4px_4px_0px_#111111]">
+                      <div className="flex items-center justify-between pb-3 mb-3 border-b-2 border-neutral-100">
+                        <div>
+                          <span className="text-xs font-black text-zero-coral">{currentStory.theme}</span>
+                          <h3 className="text-base sm:text-lg font-black text-zero-ink mt-1">{currentStory.title}</h3>
+                        </div>
+                        <button
+                          onClick={copyStory}
+                          className="px-3 py-1.5 rounded-lg border border-zero-ink text-xs font-bold bg-zero-surface hover:bg-zero-lime"
+                        >
+                          {copied ? 'کپی شد' : 'کپی متن'}
+                        </button>
+                      </div>
+                      <p className="text-xs text-neutral-600 mb-2 font-medium">
+                        <strong>کاراکترها:</strong> {currentStory.characters}
+                      </p>
+                      <p className="text-sm text-neutral-800 leading-relaxed mb-4">
+                        {currentStory.story}
+                      </p>
+                      <div className="text-xs font-bold text-neutral-600 pt-2 border-t border-neutral-100">
+                        پیام داستان: {currentStory.moral}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-8 rounded-2xl border-2 border-dashed border-zero-ink text-center text-sm font-bold text-neutral-600">
+                      روی دکمه کلیک کن تا یکی از داستان‌های آماده رویداد برایت نمایش داده شود.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* ارسال اثر نهایی */}
+            <div className="zero-card p-6 sm:p-8">
+              <div className="max-w-2xl mx-auto">
+                <div className="text-center mb-6">
+                  <h2 className="text-2xl font-black text-zero-ink">بارگذاری اثر نهایی</h2>
+                  <p className="text-xs sm:text-sm text-neutral-600 font-medium mt-1">
+                    انیمیشن تولیدشده باید حداقل ۱ دقیقه و با فرمت MP4 باشد.
+                  </p>
+                </div>
+
+                {uploadSuccess ? (
+                  <div className="p-6 rounded-2xl bg-zero-lime border-2 border-zero-ink text-center space-y-3">
+                    <h3 className="text-lg font-black text-zero-ink">
+                      اثر «{workTitle}» با موفقیت برای داوری ثبت شد
+                    </h3>
+                    <p className="text-xs text-neutral-800 font-medium">
+                      فایل شما در دبیرخانه جشنواره ذخیره گردید و به زودی وارد فرآیند داوری می‌شود.
+                    </p>
+                    <button
+                      onClick={() => { setUploadSuccess(false); setWorkTitle(''); setSelectedFile(null); }}
+                      className="px-4 py-2 rounded-xl bg-white border border-zero-ink text-xs font-bold"
+                    >
+                      ارسال فایل جدید
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={(e) => { e.preventDefault(); if (workTitle && selectedFile) setUploadSuccess(true); }} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-black text-zero-ink mb-1.5">عنوان اثر انیمیشن</label>
+                      <input
+                        type="text"
+                        required
+                        value={workTitle}
+                        onChange={(e) => setWorkTitle(e.target.value)}
+                        className="input-zero"
+                        placeholder="مثال: دانه کوچولوی امیدوار"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-black text-zero-ink mb-1.5">انتخاب فایل ویدیویی (MP4)</label>
+                      <label className="flex flex-col items-center justify-center p-6 rounded-xl border-2 border-dashed border-zero-ink bg-zero-bg cursor-pointer hover:bg-zero-surface transition-colors">
+                        <span className="text-xs font-bold text-neutral-800">
+                          {selectedFile ? `فایل انتخاب‌شده: ${selectedFile.name}` : 'برای انتخاب فایل ویدیویی کلیک کنید'}
+                        </span>
+                        <input
+                          type="file"
+                          accept="video/mp4,video/*"
+                          className="hidden"
+                          onChange={(e) => setSelectedFile(e.target.files[0] || null)}
+                        />
+                      </label>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={!workTitle || !selectedFile}
+                      className="w-full btn-zero-primary py-3.5 text-sm disabled:opacity-50"
+                    >
+                      ارسال نهایی اثر برای داوری جشنواره
+                    </button>
+                  </form>
+                )}
+              </div>
+            </div>
+
+          </div>
+        );
+      }
+
+      // --- ۷. فوتر ---
+      function Footer() {
+        return (
+          <footer className="bg-zero-ink text-white py-10 px-4 sm:px-6 border-t-2 border-zero-ink">
+            <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+              <div className="flex items-center gap-3">
+                {/* کادر سبز پایین فقط با لوگو به تنهایی (بدون متن موج امید) */}
+                <div className="w-9 h-9 rounded-xl bg-zero-lime border border-zero-ink flex items-center justify-center shadow-[2px_2px_0px_#FFFFFF]">
+                  <WaveLogo className="w-5 h-5 text-zero-ink" />
+                </div>
+                <span className="text-neutral-300 font-medium">دبیرخانه رویداد ملی انیمیشن‌سازی دانشجویی | جهاد دانشگاهی</span>
+              </div>
+              <div className="text-neutral-400">
+                تمامی حقوق این سامانه محفوظ است.
+              </div>
+            </div>
+          </footer>
+        );
+      }
+
+      function App() {
+        const [user, setUser] = useState(null);
+        const [currentView, setCurrentView] = useState('landing');
+
+        useEffect(() => {
+          const loadUser = () => {
+            const saved = localStorage.getItem('mowj_user');
+            if (saved) {
+              try { setUser(JSON.parse(saved)); } catch (e) {}
+            }
+          };
+          loadUser();
+          window.addEventListener('storage-update', loadUser);
+          return () => window.removeEventListener('storage-update', loadUser);
+        }, []);
+
+        const handleAuthSuccess = (loggedInUser) => {
+          setUser(loggedInUser);
+          setCurrentView('panel');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        const handleLogout = () => {
+          localStorage.removeItem('mowj_user');
+          setUser(null);
+          setCurrentView('landing');
+        };
+
+        return (
+          <div className="min-h-screen flex flex-col justify-between">
+            <Header
+              user={user}
+              currentView={currentView}
+              setCurrentView={setCurrentView}
+              onLogout={handleLogout}
+            />
+
+            <main className="flex-1">
+              {currentView === 'panel' && user ? (
+                <UserDashboard user={user} />
+              ) : (
+                <>
+                  <HeroSection />
+                  <EventProcess />
+                  <AuthSection onAuthSuccess={handleAuthSuccess} />
+                  <FAQSection />
+                </>
+              )}
+            </main>
+
+            <Footer />
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<App />);
+    </script>
+  </body>
+</html>

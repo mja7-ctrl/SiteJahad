@@ -1,0 +1,1092 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>پنل مدیریت دبیرخانه | موج امید</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              zero: {
+                bg: '#F6F4EE',
+                surface: '#EFECE4',
+                ink: '#111111',
+                lime: '#C8F560',
+                coral: '#FF5C35',
+                lavender: '#E5DEFF',
+              }
+            },
+            fontFamily: { vazir: ['Vazirmatn', 'sans-serif'] },
+          }
+        }
+      }
+    </script>
+    <style type="text/tailwindcss">
+      @layer base {
+        * { @apply font-vazir; }
+        body { @apply bg-zero-bg text-zero-ink antialiased overflow-x-hidden; }
+      }
+      @layer components {
+        .zero-card {
+          @apply bg-white border-2 border-zero-ink rounded-2xl shadow-[4px_4px_0px_#111111];
+        }
+        .btn-zero-primary {
+          @apply px-5 py-2.5 rounded-xl bg-zero-ink text-white font-bold border-2 border-zero-ink shadow-[3px_3px_0px_#C8F560] transition-all duration-200 hover:bg-zero-lime hover:text-zero-ink hover:shadow-[3px_3px_0px_#111111] active:translate-y-0.5 text-xs sm:text-sm;
+        }
+        .btn-zero-secondary {
+          @apply px-4 py-2 rounded-xl bg-white text-zero-ink font-bold border-2 border-zero-ink shadow-[2px_2px_0px_#111111] transition-all duration-200 hover:bg-zero-surface text-xs;
+        }
+        .input-zero {
+          @apply w-full px-3.5 py-2.5 rounded-xl bg-zero-bg border-2 border-zero-ink text-zero-ink placeholder-neutral-400 focus:bg-white focus:outline-none focus:shadow-[3px_3px_0px_#C8F560] transition-all text-xs sm:text-sm font-medium;
+        }
+      }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@18.2.0",
+          "react-dom": "https://esm.sh/react-dom@18.2.0",
+          "react-dom/client": "https://esm.sh/react-dom@18.2.0/client"
+        }
+      }
+    </script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+      import React, { useState, useEffect } from 'react';
+      import ReactDOM from 'react-dom/client';
+
+      const toFa = (n) => n !== undefined && n !== null ? n.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]) : '';
+
+      // --- داده‌های پیش‌فرض (۶ بخش و ۲۰ آموزش نهایی) ---
+      const defaultSections = [
+        {
+          id: 'sec1',
+          title: 'بخش ۱: فیلم‌نامه‌نویسی و سناریو',
+          badge: 'تولید متن و سناریو',
+          lessons: [
+            { id: 101, title: 'آموزش ۱: ورود به دنیای چت‌بات‌ها و آماده‌سازی داستان', duration: '۱۲ دقیقه', videoUrl: './video1.mp4', status: 'published' },
+            { id: 102, title: 'آموزش ۲: شناسنامه بصری کاراکتر و ساخت تصاویر مرجع', duration: '۱۵ دقیقه', videoUrl: '', status: 'published' },
+            { id: 103, title: 'آموزش ۳: طراحی استوری‌برد', duration: '۱۴ دقیقه', videoUrl: '', status: 'published' },
+          ]
+        },
+        {
+          id: 'sec2',
+          title: 'بخش ۲: تولید تصاویر',
+          badge: 'تصویرسازی هوش مصنوعی',
+          lessons: [
+            { id: 201, title: 'آموزش ۱: تولید تصویر با لئوناردو (Leonardo AI)', duration: '۱۸ دقیقه', videoUrl: '', status: 'published' },
+            { id: 202, title: 'آموزش ۲: تصویرسازی مستقیم با ابزار Vidu', duration: '۱۶ دقیقه', videoUrl: '', status: 'published' },
+            { id: 203, title: 'آموزش ۳: تولید تصویر با اکوسیستم تصویری گوگل (Google Flow)', duration: '۲۰ دقیقه', videoUrl: '', status: 'published' },
+            { id: 204, title: 'آموزش ۴: جعبه‌ابزار تصویرسازی؛ معرفی جایگزین‌های قدرتمند', duration: '۱۵ دقیقه', videoUrl: '', status: 'draft' },
+          ]
+        },
+        {
+          id: 'sec3',
+          title: 'بخش ۳: تولید ویدیو و پویانمایی',
+          badge: 'متحرک‌سازی',
+          lessons: [
+            { id: 301, title: 'آموزش ۱: متحرک‌سازی تصاویر در VIDU', duration: '۲۲ دقیقه', videoUrl: '', status: 'published' },
+            { id: 302, title: 'آموزش ۲: ساخت ویدیو با Google Flow', duration: '۱۹ دقیقه', videoUrl: '', status: 'published' },
+            { id: 303, title: 'آموزش ۳: معرفی چند ابزار تولید ویدیو دیگر', duration: '۱۷ دقیقه', videoUrl: '', status: 'draft' },
+          ]
+        },
+        {
+          id: 'sec4',
+          title: 'بخش ۴: صداگذاری، موسیقی و تدوین',
+          badge: 'صوت و تدوین نهایی',
+          lessons: [
+            { id: 401, title: 'آموزش ۱: آهنگ‌سازی و گویندگی با هوش مصنوعی گوگل (Flow Music و AI Studio)', duration: '۱۶ دقیقه', videoUrl: '', status: 'published' },
+            { id: 402, title: 'آموزش ۲: ساخت نریشن و گویندگی با HeyGen', duration: '۱۴ دقیقه', videoUrl: '', status: 'published' },
+            { id: 403, title: 'آموزش ۳: تدوین، تنظیم ریتم و افکت‌گذاری نهایی در CapCut', duration: '۲۵ دقیقه', videoUrl: '', status: 'published' },
+            { id: 404, title: 'آموزش ۴: خلق موزیک با Suno AI و تدوین آنلاین با 123apps', duration: '۱۸ دقیقه', videoUrl: '', status: 'published' },
+            { id: 405, title: 'آموزش ۵: صداپیشگی حرفه‌ای و نریشن فارسی با ElevenLabs', duration: '۱۵ دقیقه', videoUrl: '', status: 'draft' },
+          ]
+        },
+        {
+          id: 'sec5',
+          title: 'بخش ۵: پروژه‌های عملی و سبک‌سازی',
+          badge: 'پروژه عملی',
+          lessons: [
+            { id: 501, title: 'آموزش ۱: انیمیشن یک دقیقه‌ای به سبک لگویی', duration: '۲۰ دقیقه', videoUrl: '', status: 'published' },
+            { id: 502, title: 'آموزش ۲: انیمیشن یک دقیقه‌ای به سبک کاموایی', duration: '۲۱ دقیقه', videoUrl: '', status: 'published' },
+          ]
+        },
+        {
+          id: 'sec6',
+          title: 'بخش ۶: ابزارهای مکمل و زیرساخت',
+          badge: 'جعبه ابزار',
+          lessons: [
+            { id: 601, title: 'آموزش ۱: نحوه ورود به جمنای (Gemini) و گوگل فلو (Google Flow)', duration: '۱۰ دقیقه', videoUrl: '', status: 'published' },
+            { id: 602, title: 'آموزش ۲: تولید محتوا با موبایل؛ کار با نسخه گوشی Vidu', duration: '۱۲ دقیقه', videoUrl: '', status: 'published' },
+            { id: 603, title: 'آموزش ۳: تنظیمات اتصال و ابزارهای دور زدن محدودیت‌های تحریمی (Tor و اکستنشن‌ها)', duration: '۱۱ دقیقه', videoUrl: '', status: 'published' },
+          ]
+        }
+      ];
+
+      const defaultStories = [
+        {
+          id: 1,
+          title: 'دانه کوچولویی که از تاریکی نمی‌ترسید',
+          theme: 'امید و شجاعت رشد کردن',
+          characters: 'دانه فندقی، کرم شب‌تاب، قطره باران',
+          story: 'دانه کوچولو زیر خاک تاریک نشسته بود. قطره باران به او گفت: «اگر به سمت بالا قد بکشی، خورشید گرم و دشت پروانه‌ها منتظر تو هستند.» دانه با راهنمایی‌های کرم شب‌تاب ریشه‌هایش را محکم کرد و جوانه زد تا به نور برسد.',
+          moral: 'هر مسیری ممکن است در ابتدا مبهم باشد، اما با امید و تلاش زیباترین روزها از راه می‌رسند.'
+        },
+        {
+          id: 2,
+          title: 'ابر خاکستری و بادبادک‌های رنگی',
+          theme: 'امیدآفرینی و شادی جمعی',
+          characters: 'ابرک، پسرک بادبادک‌ساز، خورشید',
+          story: 'ابرک ناراحت بود که چرا رنگش سفید و پنبه‌ای نیست. بچه‌ها بادبادک زرد بزرگی به سوی او فرستادند و نوشتند: «ما منتظر باران تو هستیم تا رنگین‌کمان بسازیم!» ابرک بارید و رنگین‌کمانی بزرگ بر فراز شهر نقش بست.',
+          moral: 'هر کدام از ما ویژگی منحصر‌به‌فردی داریم که می‌تواند دنیای دیگران را روشن کند.'
+        },
+        {
+          id: 3,
+          title: 'فانوس خاموش و آواز نهنگ',
+          theme: 'یافتن مسیر در تاریکی',
+          characters: 'فانوس دریایی، نهنگ کوچک، ستاره قطبی',
+          story: 'در شبی مه‌آلود، چراغ فانوس کم‌سو شد و قایق‌ها مسیر خود را گم کردند. نهنگ با صدای بلند آوازی امیدبخش سر داد و ستاره‌ها نیز درخشیدند تا همه به سلامت به ساحل امن برسند.',
+          moral: 'حتی در تاریک‌ترین لحظات نیز یک صدای امیدوار راهگشاست.'
+        }
+      ];
+
+      const defaultUsers = [
+        {
+          fullName: 'سارا محمدی',
+          studentId: '400112233',
+          university: 'دانشگاه تهران',
+          major: 'طراحی صنعتی',
+          degree: 'کارشناسی',
+          age: '21',
+          phone: '09121112233',
+          registeredAt: '۱۴۰۵/۰۷/۲۰',
+          watchedIds: [101, 102, 103, 201, 301]
+        },
+        {
+          fullName: 'علی رضایی',
+          studentId: '401445566',
+          university: 'دانشگاه صنعتی شریف',
+          major: 'مهندسی کامپیوتر',
+          degree: 'کارشناسی ارشد',
+          age: '24',
+          phone: '09354445566',
+          registeredAt: '۱۴۰۵/۰۷/۲۱',
+          watchedIds: [101, 102]
+        },
+        {
+          fullName: 'زهرا کریمی',
+          studentId: '99887766',
+          university: 'دانشگاه هنر',
+          major: 'انیمیشن و سینما',
+          degree: 'کارشناسی',
+          age: '22',
+          phone: '09198887766',
+          registeredAt: '۱۴۰۵/۰۷/۲۲',
+          watchedIds: [101, 102, 103, 201, 202, 301, 401, 403, 501]
+        }
+      ];
+
+      const defaultSubmissions = [
+        {
+          id: 1,
+          studentName: 'سارا محمدی',
+          studentId: '400112233',
+          university: 'دانشگاه تهران',
+          phone: '09121112233',
+          workTitle: 'جوانه امید در دل تاریکی',
+          fileName: 'sarah-hope-animation.mp4',
+          fileSize: '۲۴.۵ مگابایت',
+          submittedAt: '۱۴۰۵/۰۷/۲۳ - ۱۴:۳۰',
+          status: 'approved'
+        },
+        {
+          id: 2,
+          studentName: 'زهرا کریمی',
+          studentId: '99887766',
+          university: 'دانشگاه هنر',
+          phone: '09198887766',
+          workTitle: 'رنگین‌کمان بادبادک‌ها (سبک کاموایی)',
+          fileName: 'rainbow-kites-yarn.mp4',
+          fileSize: '۳۸.۲ مگابایت',
+          submittedAt: '۱۴۰۵/۰۷/۲۴ - ۰۹:۱۵',
+          status: 'pending'
+        }
+      ];
+
+      function AdminApp() {
+        const [activeTab, setActiveTab] = useState('reports');
+        const [sections, setSections] = useState([]);
+        const [stories, setStories] = useState([]);
+        const [users, setUsers] = useState([]);
+        const [submissions, setSubmissions] = useState([]);
+
+        // استیت‌های فرم افزودن بخش و ویدیو
+        const [newSecTitle, setNewSecTitle] = useState('');
+        const [newSecBadge, setNewSecBadge] = useState('');
+
+        const [selectedSecId, setSelectedSecId] = useState('');
+        const [newLessonTitle, setNewLessonTitle] = useState('');
+        const [newLessonDuration, setNewLessonDuration] = useState('۱۵ دقیقه');
+        const [newLessonUrl, setNewLessonUrl] = useState('');
+        const [newLessonStatus, setNewLessonStatus] = useState('published');
+
+        // استیت‌های فرم بانک داستان
+        const [storyTitle, setStoryTitle] = useState('');
+        const [storyTheme, setStoryTheme] = useState('');
+        const [storyChars, setStoryChars] = useState('');
+        const [storyBody, setStoryBody] = useState('');
+        const [storyMoral, setStoryMoral] = useState('');
+
+        // فیلتر گزارش کاربران
+        const [searchQuery, setSearchQuery] = useState('');
+        const [userFilter, setUserFilter] = useState('all');
+        const [selectedStudentHistory, setSelectedStudentHistory] = useState(null);
+
+        // بارگذاری اولیه از localStorage
+        useEffect(() => {
+          const savedSections = localStorage.getItem('mowj_sections');
+          if (savedSections) {
+            const parsed = JSON.parse(savedSections);
+            setSections(parsed);
+            if (parsed.length > 0) setSelectedSecId(parsed[0].id);
+          } else {
+            setSections(defaultSections);
+            setSelectedSecId(defaultSections[0].id);
+            localStorage.setItem('mowj_sections', JSON.stringify(defaultSections));
+          }
+
+          const savedStories = localStorage.getItem('mowj_stories');
+          if (savedStories) {
+            setStories(JSON.parse(savedStories));
+          } else {
+            setStories(defaultStories);
+            localStorage.setItem('mowj_stories', JSON.stringify(defaultStories));
+          }
+
+          const savedUsers = localStorage.getItem('mowj_users_list');
+          if (savedUsers) {
+            setUsers(JSON.parse(savedUsers));
+          } else {
+            setUsers(defaultUsers);
+            localStorage.setItem('mowj_users_list', JSON.stringify(defaultUsers));
+          }
+
+          const savedSubs = localStorage.getItem('mowj_submissions');
+          if (savedSubs) {
+            setSubmissions(JSON.parse(savedSubs));
+          } else {
+            setSubmissions(defaultSubmissions);
+            localStorage.setItem('mowj_submissions', JSON.stringify(defaultSubmissions));
+          }
+        }, []);
+
+        // ذخیره تغییرات بخش‌ها
+        const saveSections = (updated) => {
+          setSections(updated);
+          localStorage.setItem('mowj_sections', JSON.stringify(updated));
+        };
+
+        // ذخیره تغییرات داستان‌ها
+        const saveStories = (updated) => {
+          setStories(updated);
+          localStorage.setItem('mowj_stories', JSON.stringify(updated));
+        };
+
+        // ذخیره تغییرات آثار
+        const saveSubmissions = (updated) => {
+          setSubmissions(updated);
+          localStorage.setItem('mowj_submissions', JSON.stringify(updated));
+        };
+
+        const allLessonsFlat = sections.flatMap(s => s.lessons.map(l => ({ ...l, sectionTitle: s.title })));
+
+        // --- عملیات بخش‌ها و ویدیوها ---
+        const handleAddSection = (e) => {
+          e.preventDefault();
+          if (!newSecTitle.trim()) return;
+          const newSec = {
+            id: 'sec_' + Date.now(),
+            title: newSecTitle.trim(),
+            badge: newSecBadge.trim() || 'آموزش تخصصی',
+            lessons: []
+          };
+          const updated = [...sections, newSec];
+          saveSections(updated);
+          setSelectedSecId(newSec.id);
+          setNewSecTitle('');
+          setNewSecBadge('');
+        };
+
+        const handleDeleteSection = (secId) => {
+          if (!confirm('آیا از حذف این بخش و تمام جلسات داخل آن مطمئن هستید؟')) return;
+          const updated = sections.filter(s => s.id !== secId);
+          saveSections(updated);
+          if (selectedSecId === secId && updated.length > 0) {
+            setSelectedSecId(updated[0].id);
+          }
+        };
+
+        const handleAddLesson = (e) => {
+          e.preventDefault();
+          if (!newLessonTitle.trim() || !selectedSecId) return;
+          const updated = sections.map(sec => {
+            if (sec.id !== selectedSecId) return sec;
+            return {
+              ...sec,
+              lessons: [
+                ...sec.lessons,
+                {
+                  id: Date.now(),
+                  title: newLessonTitle.trim(),
+                  duration: newLessonDuration.trim() || '۱۵ دقیقه',
+                  videoUrl: newLessonUrl.trim(),
+                  status: newLessonStatus
+                }
+              ]
+            };
+          });
+          saveSections(updated);
+          setNewLessonTitle('');
+          setNewLessonUrl('');
+        };
+
+        const handleDeleteLesson = (secId, lessonId) => {
+          const updated = sections.map(sec => {
+            if (sec.id !== secId) return sec;
+            return {
+              ...sec,
+              lessons: sec.lessons.filter(l => l.id !== lessonId)
+            };
+          });
+          saveSections(updated);
+        };
+
+        const handleUpdateLessonUrl = (secId, lessonId, newUrl) => {
+          const updated = sections.map(sec => {
+            if (sec.id !== secId) return sec;
+            return {
+              ...sec,
+              lessons: sec.lessons.map(l => l.id === lessonId ? { ...l, videoUrl: newUrl } : l)
+            };
+          });
+          saveSections(updated);
+        };
+
+        // --- عملیات بانک داستان ---
+        const handleAddStory = (e) => {
+          e.preventDefault();
+          if (!storyTitle.trim() || !storyBody.trim()) return;
+          const newSt = {
+            id: Date.now(),
+            title: storyTitle.trim(),
+            theme: storyTheme.trim() || 'امید و خلاقیت',
+            characters: storyChars.trim() || 'کاراکترهای کودکانه',
+            story: storyBody.trim(),
+            moral: storyMoral.trim() || 'با امید و تلاش می‌توان از چالش‌ها عبور کرد.'
+          };
+          saveStories([newSt, ...stories]);
+          setStoryTitle('');
+          setStoryTheme('');
+          setStoryChars('');
+          setStoryBody('');
+          setStoryMoral('');
+        };
+
+        const handleDeleteStory = (id) => {
+          if (!confirm('آیا این داستان از بانک داستان حذف شود؟')) return;
+          saveStories(stories.filter(s => s.id !== id));
+        };
+
+        // --- خروجی اکسل (CSV با پشتیبانی کامل از فارسی در Excel) ---
+        const exportUsersToExcel = () => {
+          const headers = ['نام و نام خانوادگی', 'شماره دانشجویی', 'دانشگاه', 'رشته تحصیلی', 'مقطع', 'سن', 'شماره موبایل', 'تعداد ویدیوی مشاهده شده', 'وضعیت ارسال اثر'];
+          const rows = users.map(u => {
+            const hasSubmitted = submissions.some(s => s.phone === u.phone || s.studentId === u.studentId);
+            return [
+              u.fullName,
+              u.studentId,
+              u.university,
+              u.major,
+              u.degree,
+              u.age,
+              u.phone,
+              `${(u.watchedIds || []).length} از ${allLessonsFlat.length}`,
+              hasSubmitted ? 'ارسال کرده' : 'ارسال نکرده'
+            ];
+          });
+
+          const csvContent = '\uFEFF' + [headers, ...rows].map(r => r.map(c => `"${c || ''}"`).join(',')).join('\n');
+          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', 'mowj-omid-students-report.csv');
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        };
+
+        const resetAllDemoData = () => {
+          if (!confirm('آیا می‌خواهید تمام اطلاعات به حالت اولیه بازنشانی شوند؟')) return;
+          localStorage.setItem('mowj_sections', JSON.stringify(defaultSections));
+          localStorage.setItem('mowj_stories', JSON.stringify(defaultStories));
+          localStorage.setItem('mowj_users_list', JSON.stringify(defaultUsers));
+          localStorage.setItem('mowj_submissions', JSON.stringify(defaultSubmissions));
+          window.location.reload();
+        };
+
+        // فیلتر لیست دانشجویان
+        const filteredUsers = users.filter(u => {
+          const matchesSearch =
+            (u.fullName || '').includes(searchQuery) ||
+            (u.studentId || '').includes(searchQuery) ||
+            (u.phone || '').includes(searchQuery) ||
+            (u.university || '').includes(searchQuery);
+          const hasSub = submissions.some(s => s.phone === u.phone || s.studentId === u.studentId);
+          if (userFilter === 'submitted') return matchesSearch && hasSub;
+          if (userFilter === 'not_submitted') return matchesSearch && !hasSub;
+          return matchesSearch;
+        });
+
+        return (
+          <div className="min-h-screen flex flex-col">
+            {/* هدر پنل ادمین */}
+            <header className="sticky top-0 z-50 bg-zero-ink text-white border-b-2 border-zero-ink">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-zero-lime text-zero-ink font-black flex items-center justify-center text-lg border-2 border-white">
+                    م
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-base sm:text-lg font-black text-white">پنل مدیریت «موج امید»</span>
+                      <span className="px-2 py-0.5 rounded bg-zero-coral text-white text-[10px] font-black">ADMIN</span>
+                    </div>
+                    <span className="text-xs text-neutral-400 block mt-0.5">مدیریت دوره‌ها، بانک داستان و گزارش‌های دبیرخانه</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5">
+                  <button
+                    onClick={resetAllDemoData}
+                    className="hidden md:inline-block px-3 py-2 rounded-xl bg-neutral-800 text-neutral-300 hover:text-white text-xs font-bold border border-neutral-700"
+                    title="بازگردانی اطلاعات پیش‌فرض"
+                  >
+                    بازنشانی داده‌ها
+                  </button>
+                  <a
+                    href="./index.html"
+                    className="px-4 py-2.5 rounded-xl bg-zero-lime text-zero-ink font-black text-xs sm:text-sm border-2 border-white hover:bg-white transition-colors"
+                  >
+                    مشاهده سایت اصلی ↗
+                  </a>
+                </div>
+              </div>
+            </header>
+
+            <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 flex-1 space-y-8">
+              
+              {/* کارت‌های آمار سریع بالای صفحه */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="zero-card p-5 bg-white">
+                  <span className="text-xs font-bold text-neutral-500 block">کل ثبت‌نام‌کنندگان</span>
+                  <div className="flex items-baseline justify-between mt-2">
+                    <span className="text-3xl font-black text-zero-ink">{toFa(users.length)}</span>
+                    <span className="text-xs font-black px-2 py-0.5 rounded bg-zero-lime border border-zero-ink">دانشجو</span>
+                  </div>
+                </div>
+
+                <div className="zero-card p-5 bg-zero-lavender">
+                  <span className="text-xs font-bold text-neutral-700 block">آثار ویدیویی ارسالی</span>
+                  <div className="flex items-baseline justify-between mt-2">
+                    <span className="text-3xl font-black text-zero-ink">{toFa(submissions.length)}</span>
+                    <span className="text-xs font-black px-2 py-0.5 rounded bg-white border border-zero-ink">فایل MP4</span>
+                  </div>
+                </div>
+
+                <div className="zero-card p-5 bg-white">
+                  <span className="text-xs font-bold text-neutral-500 block">سرفصل‌ها و ویدیوها</span>
+                  <div className="flex items-baseline justify-between mt-2">
+                    <span className="text-2xl font-black text-zero-ink">{toFa(sections.length)} بخش / {toFa(allLessonsFlat.length)} جلسه</span>
+                  </div>
+                </div>
+
+                <div className="zero-card p-5 bg-zero-lime">
+                  <span className="text-xs font-bold text-zero-ink block">قصه‌های بانک داستان</span>
+                  <div className="flex items-baseline justify-between mt-2">
+                    <span className="text-3xl font-black text-zero-ink">{toFa(stories.length)}</span>
+                    <span className="text-xs font-black px-2 py-0.5 rounded bg-white border border-zero-ink">داستان آماده</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* منوی تب‌های مدیریت */}
+              <div className="flex flex-wrap gap-2 p-2 rounded-2xl bg-zero-surface border-2 border-zero-ink">
+                <button
+                  onClick={() => setActiveTab('reports')}
+                  className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all ${
+                    activeTab === 'reports' ? 'bg-zero-ink text-zero-lime shadow-sm' : 'text-zero-ink hover:bg-white'
+                  }`}
+                >
+                  ۱. گزارش شرکت‌کنندگان و ویدیوهای دیده‌شده
+                </button>
+                <button
+                  onClick={() => setActiveTab('submissions')}
+                  className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all ${
+                    activeTab === 'submissions' ? 'bg-zero-ink text-zero-lime shadow-sm' : 'text-zero-ink hover:bg-white'
+                  }`}
+                >
+                  ۲. آثار ارسالی دانشجویان ({toFa(submissions.length)})
+                </button>
+                <button
+                  onClick={() => setActiveTab('courses')}
+                  className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all ${
+                    activeTab === 'courses' ? 'bg-zero-ink text-zero-lime shadow-sm' : 'text-zero-ink hover:bg-white'
+                  }`}
+                >
+                  ۳. مدیریت بخش‌ها و ویدیوهای آموزشی
+                </button>
+                <button
+                  onClick={() => setActiveTab('stories')}
+                  className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all ${
+                    activeTab === 'stories' ? 'bg-zero-ink text-zero-lime shadow-sm' : 'text-zero-ink hover:bg-white'
+                  }`}
+                >
+                  ۴. مدیریت بانک داستان‌ها
+                </button>
+              </div>
+
+              {/* ==================== تب ۱: گزارش شرکت‌کنندگان ==================== */}
+              {activeTab === 'reports' && (
+                <div className="zero-card p-6 sm:p-8 space-y-6">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b-2 border-neutral-100">
+                    <div>
+                      <h2 className="text-xl font-black text-zero-ink">گزارش جامع ثبت‌نام‌کنندگان و پیشرفت آموزشی</h2>
+                      <p className="text-xs text-neutral-600 font-medium mt-1">
+                        مشاهده مشخصات هر دانشجو، تعداد ویدیوهایی که تماشا کرده و وضعیت ارسال اثر نهایی.
+                      </p>
+                    </div>
+                    <button onClick={exportUsersToExcel} className="btn-zero-primary self-start md:self-auto">
+                      📥 دریافت خروجی اکسل (Excel)
+                    </button>
+                  </div>
+
+                  {/* جستجو و فیلتر */}
+                  <div className="grid sm:grid-cols-12 gap-4">
+                    <div className="sm:col-span-7">
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="جستجو بر اساس نام، شماره دانشجویی، موبایل یا دانشگاه..."
+                        className="input-zero"
+                      />
+                    </div>
+                    <div className="sm:col-span-5 flex gap-2">
+                      <button
+                        onClick={() => setUserFilter('all')}
+                        className={`flex-1 py-2 rounded-xl border-2 border-zero-ink text-xs font-black ${
+                          userFilter === 'all' ? 'bg-zero-lime' : 'bg-white'
+                        }`}
+                      >
+                        همه ({toFa(users.length)})
+                      </button>
+                      <button
+                        onClick={() => setUserFilter('submitted')}
+                        className={`flex-1 py-2 rounded-xl border-2 border-zero-ink text-xs font-black ${
+                          userFilter === 'submitted' ? 'bg-zero-lime' : 'bg-white'
+                        }`}
+                      >
+                        اثر فرستاده‌اند
+                      </button>
+                      <button
+                        onClick={() => setUserFilter('not_submitted')}
+                        className={`flex-1 py-2 rounded-xl border-2 border-zero-ink text-xs font-black ${
+                          userFilter === 'not_submitted' ? 'bg-zero-coral text-white' : 'bg-white'
+                        }`}
+                      >
+                        نفرستاده‌اند
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* جدول دانشجویان */}
+                  <div className="overflow-x-auto rounded-xl border-2 border-zero-ink">
+                    <table className="w-full text-right text-xs sm:text-sm">
+                      <thead className="bg-zero-surface border-b-2 border-zero-ink text-zero-ink font-black">
+                        <tr>
+                          <th className="p-3.5">نام و نام خانوادگی</th>
+                          <th className="p-3.5">شماره دانشجویی</th>
+                          <th className="p-3.5">دانشگاه / رشته</th>
+                          <th className="p-3.5">شماره همراه</th>
+                          <th className="p-3.5">ویدیوهای دیده‌شده</th>
+                          <th className="p-3.5">وضعیت ارسال اثر</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-neutral-200 bg-white font-medium">
+                        {filteredUsers.map((u, idx) => {
+                          const watchedCount = (u.watchedIds || []).length;
+                          const userSub = submissions.find(s => s.phone === u.phone || s.studentId === u.studentId);
+                          return (
+                            <tr key={idx} className="hover:bg-zero-bg/60">
+                              <td className="p-3.5 font-black text-zero-ink">{u.fullName}</td>
+                              <td className="p-3.5 font-mono" dir="ltr">{toFa(u.studentId)}</td>
+                              <td className="p-3.5">
+                                <span className="font-bold block">{u.university}</span>
+                                <span className="text-[11px] text-neutral-500">{u.major} ({u.degree})</span>
+                              </td>
+                              <td className="p-3.5 font-mono font-bold" dir="ltr">{u.phone}</td>
+                              <td className="p-3.5">
+                                <div className="flex items-center gap-2">
+                                  <span className="px-2.5 py-1 rounded-lg bg-zero-surface border border-zero-ink font-black text-xs">
+                                    {toFa(watchedCount)} از {toFa(allLessonsFlat.length)} جلسه
+                                  </span>
+                                  <button
+                                    onClick={() => setSelectedStudentHistory(u)}
+                                    className="text-[11px] font-black underline text-zero-ink hover:text-zero-coral"
+                                  >
+                                    ریز جلسات
+                                  </button>
+                                </div>
+                              </td>
+                              <td className="p-3.5">
+                                {userSub ? (
+                                  <span className="inline-block px-2.5 py-1 rounded-lg bg-zero-lime border border-zero-ink text-zero-ink text-xs font-black">
+                                    ✓ ارسال شده ({userSub.workTitle})
+                                  </span>
+                                ) : (
+                                  <span className="inline-block px-2.5 py-1 rounded-lg bg-neutral-100 border border-neutral-300 text-neutral-600 text-xs font-bold">
+                                    هنوز نفرستاده
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* مودال نمایش ریز ویدیوهای دیده‌شده توسط یک دانشجو */}
+                  {selectedStudentHistory && (
+                    <div className="p-5 rounded-2xl bg-zero-lavender border-2 border-zero-ink space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-black text-sm sm:text-base">
+                          ویدیوهای مشاهده‌شده توسط: {selectedStudentHistory.fullName}
+                        </h4>
+                        <button
+                          onClick={() => setSelectedStudentHistory(null)}
+                          className="px-3 py-1 rounded-lg bg-white border border-zero-ink text-xs font-black"
+                        >
+                          بستن ✕
+                        </button>
+                      </div>
+                      <div className="grid sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto pt-2">
+                        {allLessonsFlat.map(les => {
+                          const seen = (selectedStudentHistory.watchedIds || []).includes(les.id);
+                          return (
+                            <div
+                              key={les.id}
+                              className={`p-2.5 rounded-xl border text-xs flex items-center justify-between ${
+                                seen ? 'bg-zero-lime border-zero-ink font-black' : 'bg-white/70 border-neutral-300 text-neutral-500'
+                              }`}
+                            >
+                              <span>{les.title}</span>
+                              <span>{seen ? '✓ دیده شده' : 'ندیده'}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ==================== تب ۲: آثار ارسالی دانشجویان ==================== */}
+              {activeTab === 'submissions' && (
+                <div className="zero-card p-6 sm:p-8 space-y-6">
+                  <div>
+                    <h2 className="text-xl font-black text-zero-ink">لیست آثار و انیمیشن‌های ارسالی دانشجویان</h2>
+                    <p className="text-xs text-neutral-600 font-medium mt-1">
+                      هر دانشجویی که از داخل پنل کاربری اثر خود را آپلود کند، مشخصات و فایل او در این جدول ثبت می‌شود.
+                    </p>
+                  </div>
+
+                  {submissions.length === 0 ? (
+                    <div className="p-10 text-center rounded-2xl border-2 border-dashed border-zero-ink text-sm font-bold text-neutral-600">
+                      هنوز اثری بارگذاری نشده است.
+                    </div>
+                  ) : (
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {submissions.map((sub) => (
+                        <div key={sub.id} className="p-5 rounded-2xl bg-zero-bg border-2 border-zero-ink flex flex-col justify-between space-y-4">
+                          <div>
+                            <div className="flex items-center justify-between pb-3 mb-3 border-b border-zero-ink/15">
+                              <span className="px-2.5 py-0.5 rounded bg-zero-lime border border-zero-ink text-xs font-black">
+                                اثر ارسالی
+                              </span>
+                              <span className="text-xs text-neutral-500 font-bold">{sub.submittedAt}</span>
+                            </div>
+                            <h3 className="text-base sm:text-lg font-black text-zero-ink mb-2">
+                              «{sub.workTitle}»
+                            </h3>
+                            <div className="space-y-1 text-xs text-neutral-700 font-medium">
+                              <p><strong>نام دانشجو:</strong> {sub.studentName} (شماره دانشجویی: {toFa(sub.studentId)})</p>
+                              <p><strong>دانشگاه:</strong> {sub.university}</p>
+                              <p><strong>شماره تماس:</strong> <span dir="ltr" className="font-mono font-bold">{sub.phone}</span></p>
+                              <p><strong>نام فایل:</strong> <span dir="ltr" className="font-mono">{sub.fileName}</span> ({sub.fileSize})</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-3 border-t border-zero-ink/15 gap-2">
+                            <button
+                              onClick={() => alert(`در نسخه متصل به سرور، فایل ویدیویی (${sub.fileName}) مستقیماً پخش یا دانلود می‌شود.`)}
+                              className="btn-zero-primary !py-2 !px-4 flex-1 text-center"
+                            >
+                              ▶ پخش / دانلود فایل MP4
+                            </button>
+                            <button
+                              onClick={() => saveSubmissions(submissions.filter(s => s.id !== sub.id))}
+                              className="px-3 py-2 rounded-xl bg-white border-2 border-zero-ink text-xs font-bold text-zero-coral hover:bg-rose-50"
+                            >
+                              حذف
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ==================== تب ۳: مدیریت بخش‌ها و ویدیوها ==================== */}
+              {activeTab === 'courses' && (
+                <div className="grid lg:grid-cols-12 gap-6">
+                  
+                  {/* ستون راست: فرم‌های افزودن بخش جدید و افزودن ویدیو */}
+                  <div className="lg:col-span-5 space-y-6">
+                    
+                    {/* فرم ۱: افزودن بخش (سرفصل) جدید */}
+                    <div className="zero-card p-6 bg-zero-lavender space-y-4">
+                      <h3 className="text-base font-black text-zero-ink border-b border-zero-ink/20 pb-2">
+                        + افزودن بخش (سرفصل) جدید
+                      </h3>
+                      <p className="text-xs text-neutral-700 font-medium">
+                        می‌توانید تعداد بخش‌ها را کم یا زیاد کنید (مثلاً بخش ۷ را اضافه کنید یا بخشی را حذف نمایید).
+                      </p>
+                      <form onSubmit={handleAddSection} className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-black mb-1">عنوان بخش جدید</label>
+                          <input
+                            type="text"
+                            required
+                            value={newSecTitle}
+                            onChange={(e) => setNewSecTitle(e.target.value)}
+                            placeholder="مثال: بخش ۷: تکنیک‌های پیشرفته کارگردانی"
+                            className="input-zero bg-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-black mb-1">برچسب کوتاه (اختیاری)</label>
+                          <input
+                            type="text"
+                            value={newSecBadge}
+                            onChange={(e) => setNewSecBadge(e.target.value)}
+                            placeholder="مثال: تکمیلی"
+                            className="input-zero bg-white"
+                          />
+                        </div>
+                        <button type="submit" className="w-full btn-zero-primary">
+                          ایجاد بخش جدید
+                        </button>
+                      </form>
+                    </div>
+
+                    {/* فرم ۲: افزودن ویدیوی آموزشی به بخش انتخاب‌شده */}
+                    <div className="zero-card p-6 bg-white space-y-4">
+                      <h3 className="text-base font-black text-zero-ink border-b border-neutral-200 pb-2">
+                        🎬 افزودن ویدیوی آموزشی جدید
+                      </h3>
+                      <form onSubmit={handleAddLesson} className="space-y-3.5">
+                        <div>
+                          <label className="block text-xs font-black mb-1">انتخاب بخش (سرفصل)</label>
+                          <select
+                            value={selectedSecId}
+                            onChange={(e) => setSelectedSecId(e.target.value)}
+                            className="input-zero"
+                          >
+                            {sections.map(s => (
+                              <option key={s.id} value={s.id}>{s.title}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-black mb-1">عنوان جلسه آموزشی</label>
+                          <input
+                            type="text"
+                            required
+                            value={newLessonTitle}
+                            onChange={(e) => setNewLessonTitle(e.target.value)}
+                            placeholder="مثال: آموزش ۴: ساخت انیمیشن با Kling AI"
+                            className="input-zero"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-black mb-1">مدت زمان</label>
+                            <input
+                              type="text"
+                              value={newLessonDuration}
+                              onChange={(e) => setNewLessonDuration(e.target.value)}
+                              placeholder="۱۵ دقیقه"
+                              className="input-zero"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-black mb-1">وضعیت نمایش</label>
+                            <select
+                              value={newLessonStatus}
+                              onChange={(e) => setNewLessonStatus(e.target.value)}
+                              className="input-zero"
+                            >
+                              <option value="published">منتشر شده (فعال)</option>
+                              <option value="draft">در دست تولید</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-black mb-1">
+                            آدرس یا نام فایل ویدیو (در گیت‌هاب یا هاست)
+                          </label>
+                          <input
+                            type="text"
+                            dir="ltr"
+                            value={newLessonUrl}
+                            onChange={(e) => setNewLessonUrl(e.target.value)}
+                            placeholder="./video1.mp4  یا  https://site.com/v1.mp4"
+                            className="input-zero text-left font-mono"
+                          />
+                          <p className="text-[11px] text-neutral-500 mt-1">
+                            💡 اگر فایل ویدیو را کنار index.html در گیت‌هاب/FTP گذاشته‌اید، فقط نام آن را مثل <code className="font-bold">./video1.mp4</code> بنویسید.
+                          </p>
+                        </div>
+
+                        <button type="submit" className="w-full btn-zero-primary">
+                          افزودن ویدیو به دوره
+                        </button>
+                      </form>
+                    </div>
+
+                  </div>
+
+                  {/* ستون چپ: لیست بخش‌ها و ویدیوهای موجود */}
+                  <div className="lg:col-span-7 space-y-4">
+                    <div className="zero-card p-6 space-y-5">
+                      <div className="flex items-center justify-between border-b border-neutral-200 pb-3">
+                        <h3 className="text-lg font-black text-zero-ink">
+                          فهرست بخش‌ها و جلسات فعلی سایت ({toFa(sections.length)} بخش)
+                        </h3>
+                        <span className="text-xs font-bold text-neutral-500">
+                          هر تغییری بلافاصله در صفحه اصلی اعمال می‌شود
+                        </span>
+                      </div>
+
+                      <div className="space-y-4">
+                        {sections.map((sec) => (
+                          <div key={sec.id} className="rounded-2xl border-2 border-zero-ink overflow-hidden bg-zero-bg">
+                            <div className="p-4 bg-zero-surface flex items-center justify-between border-b-2 border-zero-ink">
+                              <div>
+                                <span className="text-[10px] font-black px-2 py-0.5 rounded bg-zero-lime border border-zero-ink ml-2">
+                                  {sec.badge}
+                                </span>
+                                <span className="font-black text-sm sm:text-base text-zero-ink">{sec.title}</span>
+                              </div>
+                              <button
+                                onClick={() => handleDeleteSection(sec.id)}
+                                className="px-2.5 py-1 rounded-lg bg-white border border-zero-ink text-xs font-bold text-zero-coral hover:bg-rose-50"
+                              >
+                                حذف بخش
+                              </button>
+                            </div>
+
+                            <div className="p-4 space-y-3 bg-white">
+                              {sec.lessons.length === 0 ? (
+                                <p className="text-xs text-neutral-400 font-bold text-center py-2">
+                                  هیچ ویدیویی در این بخش ثبت نشده است.
+                                </p>
+                              ) : (
+                                sec.lessons.map((les) => (
+                                  <div key={les.id} className="p-3 rounded-xl border border-neutral-200 bg-zero-bg/50 space-y-2">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-black text-xs sm:text-sm text-zero-ink">{les.title}</span>
+                                        {les.status === 'draft' && (
+                                          <span className="px-2 py-0.5 rounded bg-amber-100 border border-amber-400 text-amber-800 text-[10px] font-bold">
+                                            در دست تولید
+                                          </span>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-2 flex-shrink-0">
+                                        <span className="text-xs text-neutral-500 font-bold">{les.duration}</span>
+                                        <button
+                                          onClick={() => handleDeleteLesson(sec.id, les.id)}
+                                          className="text-xs font-bold text-zero-coral hover:underline"
+                                        >
+                                          حذف
+                                        </button>
+                                      </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[11px] font-bold text-neutral-600 whitespace-nowrap">فایل/لینک ویدیو:</span>
+                                      <input
+                                        type="text"
+                                        dir="ltr"
+                                        value={les.videoUrl || ''}
+                                        onChange={(e) => handleUpdateLessonUrl(sec.id, les.id, e.target.value)}
+                                        placeholder="./video1.mp4 یا لینک مستقیم MP4"
+                                        className="w-full px-2.5 py-1 rounded-lg bg-white border border-neutral-300 text-xs font-mono text-left"
+                                      />
+                                    </div>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              )}
+
+              {/* ==================== تب ۴: مدیریت بانک داستان ==================== */}
+              {activeTab === 'stories' && (
+                <div className="grid lg:grid-cols-12 gap-6">
+                  
+                  {/* فرم افزودن داستان جدید */}
+                  <div className="lg:col-span-5">
+                    <div className="zero-card p-6 bg-white space-y-4">
+                      <h3 className="text-base font-black text-zero-ink border-b border-neutral-200 pb-2">
+                        📖 افزودن قصه جدید به بانک داستان
+                      </h3>
+                      <form onSubmit={handleAddStory} className="space-y-3.5">
+                        <div>
+                          <label className="block text-xs font-black mb-1">عنوان داستان</label>
+                          <input
+                            type="text"
+                            required
+                            value={storyTitle}
+                            onChange={(e) => setStoryTitle(e.target.value)}
+                            placeholder="مثال: ستاره‌ای که راهش را پیدا کرد"
+                            className="input-zero"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-black mb-1">موضوع / تم داستان</label>
+                          <input
+                            type="text"
+                            value={storyTheme}
+                            onChange={(e) => setStoryTheme(e.target.value)}
+                            placeholder="مثال: امید و پشتکار"
+                            className="input-zero"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-black mb-1">شخصیت‌های پیشنهادی</label>
+                          <input
+                            type="text"
+                            value={storyChars}
+                            onChange={(e) => setStoryChars(e.target.value)}
+                            placeholder="مثال: ستاره کوچک، ماه مهربان، جغد دانا"
+                            className="input-zero"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-black mb-1">متن کامل داستان</label>
+                          <textarea
+                            rows="4"
+                            required
+                            value={storyBody}
+                            onChange={(e) => setStoryBody(e.target.value)}
+                            placeholder="متن قصه کودکانه را اینجا بنویسید..."
+                            className="input-zero"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-black mb-1">پیام امیدبخش داستان</label>
+                          <input
+                            type="text"
+                            value={storyMoral}
+                            onChange={(e) => setStoryMoral(e.target.value)}
+                            placeholder="نتیجه اخلاقی و پیام داستان"
+                            className="input-zero"
+                          />
+                        </div>
+                        <button type="submit" className="w-full btn-zero-primary">
+                          ثبت در بانک داستان
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+
+                  {/* لیست داستان‌های موجود (فقط نمایش و حذف) */}
+                  <div className="lg:col-span-7">
+                    <div className="zero-card p-6 space-y-4">
+                      <h3 className="text-lg font-black text-zero-ink border-b border-neutral-200 pb-3">
+                        لیست داستان‌های فعال ({toFa(stories.length)} داستان)
+                      </h3>
+
+                      <div className="space-y-3">
+                        {stories.map((st) => (
+                          <div key={st.id} className="p-4 rounded-2xl border-2 border-zero-ink bg-zero-bg space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <span className="text-xs font-black text-zero-coral block">{st.theme}</span>
+                                <h4 className="text-sm sm:text-base font-black text-zero-ink">{st.title}</h4>
+                              </div>
+                              <button
+                                onClick={() => handleDeleteStory(st.id)}
+                                className="px-3 py-1.5 rounded-lg bg-white border border-zero-ink text-xs font-bold text-zero-coral hover:bg-rose-50"
+                              >
+                                حذف داستان
+                              </button>
+                            </div>
+                            <p className="text-xs text-neutral-600 font-bold">کاراکترها: {st.characters}</p>
+                            <p className="text-xs sm:text-sm text-neutral-800 leading-relaxed">{st.story}</p>
+                            <p className="text-xs font-bold text-neutral-600 pt-1 border-t border-neutral-200">
+                              پیام: {st.moral}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              )}
+
+            </div>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<AdminApp />);
+    </script>
+  </body>
+</html>
